@@ -2,6 +2,7 @@
 
 A predictive analytics system employing machine learning to forecast hospital resource needs and optimize inpatient care in Singapore's healthcare sector.
 
+**Team**: [Xinyang](https://github.com/thenewgoat), Thaddea, Jessalyn, Pierre, Samuel, Bryna
 
 ### Documents
 
