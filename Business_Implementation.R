@@ -76,7 +76,6 @@ for (i in 1:length(seq_dates)) {
 occupancy_df <- data.frame(date = seq_dates, occupancy = bed_occupancy)
 occupancy_df
 
-dev.off()
 ggplot(occupancy_df, aes(x = date, y = occupancy)) +
   geom_line() + 
   labs(title = "Daily Bed Occupancy for Heart Disease Patients",
@@ -105,7 +104,7 @@ ggplot(occupancy_df, aes(x = date, y = occupancy)) +
 
 
 # Source the past TSF model (please update with ~/TSF.R)
-source("C:/Users/zhang/Desktop/NTU/Y2S2/BC2407/Project Files/Final R Script/TSF.R")
+# source("C:/Users/zhang/Desktop/NTU/Y2S2/BC2407/Project Files/Final R Script/TSF.R")
 
 # Update Admissions with new data
 setDT(adm)
@@ -115,7 +114,9 @@ patient_admissions_today <- as.data.frame(patient_admissions_today)
 patient_admissions_today$admission_date <- as.character(patient_admissions_today$admission_date)
 patient_admissions_today
 
+colnames(patient_admissions_per_day) <- c('admission_date', 'number_of_patients')
 patient_admissions_per_day <- rbind(patient_admissions_per_day, patient_admissions_today)
+
 patient_admissions_per_day$admission_date <- as.Date(patient_admissions_per_day$admission_date)
 tail(patient_admissions_per_day)
 
@@ -127,55 +128,45 @@ m <- prophet(patient_admissions_per_day,
              growth = "linear",
              daily.seasonality = FALSE, 
              weekly.seasonality = TRUE,
-             yearly.seasonality = TRUE, 
-             seasonality.mode = "multiplicative", 
-             holidays = holidays)
+             yearly.seasonality = FALSE, 
+             seasonality.mode = "additive")
 
 future <- make_future_dataframe(m, periods = 10) # 2 weeks
 forecast <- predict(m, future)
 
-forecasted_values <- data.frame(admission_date = as.Date(tail(forecast$ds,10)), number_of_patients = tail(round(forecast$yhat,0), n))
+
+forecasted_values <- data.frame(admission_date = as.Date(tail(forecast$ds,10)), number_of_patients = tail(round(forecast$yhat,0), 10))
+forecasted_values
 
 forecasted_values$sampled_duration_of_stay <- NA
 forecasted_values$discharge_date <- as.Date(character(nrow(forecasted_values)))
+forecasted_values
 
+duration_distribution <- 1:10
 
-patient_details <- data.frame(admission_date = as.Date(character()), 
-                              duration_of_stay = integer(), 
+all_patients_df <- data.frame(admission_date = as.Date(character()),
+                              duration = integer(),
                               discharge_date = as.Date(character()))
 
-# Loop through each day in forecasted_values
-for (i in 1:nrow(forecasted_values)) {
-  # Number of patients to sample for this day
+for(i in 1:nrow(forecasted_values)) {
   num_patients <- forecasted_values$number_of_patients[i]
+  admission_date <- as.Date(forecasted_values$admission_date[i])
+
+  sampled_durations <- sample(duration_distribution, num_patients, replace = TRUE)
   
-  # Sample duration_of_stay for each predicted patient
-  sampled_durations <- sample(data$DURATION.OF.STAY, num_patients, replace = TRUE)
+  discharge_dates <- admission_date + sampled_durations
   
-  # Compute discharge dates based on the sampled durations
-  discharge_dates <- forecasted_values$admission_date[i] + as.numeric(sampled_durations)
-  
-  # Create a dataframe for this batch of patients
-  batch_df <- data.frame(admission_date = rep(forecasted_values$admission_date[i], num_patients),
-                         duration_of_stay = sampled_durations,
+  daily_df <- data.frame(admission_date = rep(admission_date, num_patients),
+                         duration = sampled_durations,
                          discharge_date = discharge_dates)
   
-  # Append this batch to the patient_details dataframe
-  patient_details <- rbind(patient_details, batch_df)
+  all_patients_df <- rbind(all_patients_df, daily_df)
 }
-
-# Convert admission_date and discharge_date back to Date class if necessary
-patient_details$admission_date <- as.Date(patient_details$admission_date)
-patient_details$discharge_date <- as.Date(patient_details$discharge_date)
-
-patient_details$duration <- patient_details$duration_of_stay
-patient_details$duration_of_stay <- NULL
-
-patient_details
+all_patients_df
 
 
 # -----------------------------------------------------------------------
-#                       Predicting Today's Admissions
+#                     Predicting eLOS for Today's Admissions
 # -----------------------------------------------------------------------
 
 
@@ -184,8 +175,8 @@ patient_details
 load("Past.RData")
 sim <- data[sample(nrow(data), 22), ]
 sim$ADMISSION_DATE <- as.Date("2019-04-01")
-adm_pred <- predict(m.RF.1, sim, type = "response")
-View(adm_pred)
+adm_pred <- predict(m.RF.1, adm, type = "response")
+adm_pred
 
 
 
@@ -195,8 +186,9 @@ new_predicted_stays
 
 carry_over <- rbind(predicted_stays,new_predicted_stays)
 carry_over
-
-projecting <- rbind(carry_over,patient_details)
+names(carry_over)
+names(all_patients_df)
+projecting <- rbind(carry_over,all_patients_df)
 projecting
 
 seq_dates <- seq(from = as.Date("2019-04-01"), 
@@ -217,11 +209,18 @@ for (i in 1:length(seq_dates)) {
 occupancy_df <- data.frame(date = seq_dates, occupancy = bed_occupancy)
 occupancy_df
 
-dev.off()
+occupancy_diff <- c(NA, diff(occupancy_df$occupancy))
+
+# Shift the occupancy values to align with the day for which the difference is calculated
+previous_day_occupancy <- c(NA, head(occupancy_df$occupancy, -1))
+
+# Calculate the percentage change correctly
+occupancy_df$percentage_change <- (occupancy_diff / previous_day_occupancy) * 100
 ggplot(occupancy_df, aes(x = date, y = occupancy)) +
   geom_line() + 
-  labs(title = "Daily Bed Occupancy for Heart Disease Patients",
-       x = "Date", y = "Bed Occupancy") +
+  geom_text(aes(label = sprintf("%.1f%%", percentage_change)), vjust = -0.5, nudge_y = 1, check_overlap = TRUE) +
+  labs(title = "Projection of Daily Heart Disease Patient Count",
+       x = "Date", y = "No. of Patients") +
   theme_minimal() + 
   scale_y_continuous(limits = c(0, NA))
 
