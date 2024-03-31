@@ -3,7 +3,9 @@
 A predictive analytics system employing machine learning to forecast hospital resource needs and optimize inpatient care in Singapore's healthcare sector.
 
 
+### Documents
 
+- [Report](BC2407_S01_Grp4 Report.docx)
 
 
 
