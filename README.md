@@ -1,4 +1,4 @@
-# BC2407
+# Project HeartHorizon
 
 ## Executive Summary
 
