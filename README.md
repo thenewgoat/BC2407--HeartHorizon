@@ -1,6 +1,7 @@
 # BC2407
 
-Executive Summary
+**Executive Summary**
+
 
 With the ever-increasing demand for the healthcare sector in Singapore, hospitals face the challenge of providing sufficient beds, staff and resources to patients, especially for those suffering from critical, time-sensitive diseases such as heart disease. Better demand prediction models are needed for a more optimised allocation of resources, thereby streamlining hospitals’ operations and increasing the likelihood of meeting their demand.
 
