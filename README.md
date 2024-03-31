@@ -6,7 +6,7 @@ A predictive analytics system employing machine learning to forecast hospital re
 ### Documents
 
 - [Report](https://github.com/thenewgoat/bc2407/blob/main/BC2407_S01_Grp4%20Report.docx)
-
+- [Slides](https://github.com/thenewgoat/bc2407/blob/main/BC2407_S01_Grp4%20Slides.pptx)
 
 
 
