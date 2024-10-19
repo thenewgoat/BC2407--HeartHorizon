@@ -4,7 +4,7 @@ A predictive analytics system employing machine learning to forecast hospital re
 
 **Team**: [Xinyang](https://github.com/thenewgoat), Thaddea, Jessalyn, Pierre, Samuel, Bryna
 
-![R](https://camo.githubusercontent.com/b66f76d657fe662500977c6730941ccff0c0cec4bb8564db9a28e70b4887b627/68747470733a2f2f696d672e736869656c64732e696f2f62616467652f722d2532333237364443332e7376673f7374796c653d666f722d7468652d6261646765266c6f676f3d72266c6f676f436f6c6f723d7768697465)
+![R](https://img.shields.io/badge/R-276DC3?style=for-the-badge&logo=r&logoColor=white)
 
 ### Documents
 
